@@ -163,7 +163,7 @@ class AM2_Writing_Helper_Admin {
                 "Please leave your feedback here:\n".
                 "{{feedback-link}}\n\n".
                 "Title: " . get_the_title() . "\n".
-                "Beginning: " . get_the_excerpt() . "\n".
+                "Beginning: " . strip_tags(apply_filters('the_excerpt',$post->post_content)) . "\n".
                 "Read more: {{feedback-link}}" ."\n".
                 "Thanks,\n".
                 $this->current_user->display_name . " (".$this->current_user->user_email.")";
@@ -183,6 +183,10 @@ class AM2_Writing_Helper_Admin {
                 <a class="button" id="df-share-link" data-post-id="7">
                     Get a link						</a>
             </div>-->
+            <div id="am2_writing_helper">
+                <div class="am2_wh_success"></div>
+                <div class="am2_wh_fail"></div>
+            </div>
         </div>
 
         <?php
@@ -220,7 +224,7 @@ class AM2_Writing_Helper_Admin {
             if(is_array($addresses)){                
                 foreach($addresses as $email){
                     $email = trim($email);
-                    $reviewers_hash = md5($post_id.$email.'dontmove');
+                    $reviewers_hash = md5($post_id.$email.AUTH_KEY);
                     $feedback_link = site_url() . "?p=" . $post_id . "&am2_shareadraft=" . $reviewers_hash;
                     $to = $email;                   
                     $subject = $this->current_user->display_name . ' asked you for feedback on a new draft: "'.get_the_title($post_id).'"';

@@ -31,7 +31,11 @@
         
         $(document).ready(function(){
             $('#invitetoshare #add-request-custom').on('click', function(){
-                console.log(AM2Ajax);
+               console.log(AM2Ajax);
+               
+               $('#am2_writing_helper .am2_wh_success').html('Success: ');
+               $('#am2_writing_helper .am2_wh_fail').html('Fail: ');
+               
                $.post(AM2Ajax.ajaxurl,{
                    action: AM2Ajax.plugin_name + '_send_invites',
                    am2WritingHelperNonce: AM2Ajax.am2WritingHelperNonce, 
@@ -41,7 +45,13 @@
                        post_id: $('#invitetoshare input[name="am2_current_post_id"]').val()
                     }
                },function(resp){
-                   console.log(resp);
+                   for(var obj in resp){
+                       console.log(obj);
+                      if(resp[obj] === true)
+                          $('#am2_writing_helper .am2_wh_success').append(obj + ", ");
+                      else
+                          $('#am2_writing_helper .am2_wh_fail').append(obj+ ", ");
+                   }
                }) ;
             });
         });
