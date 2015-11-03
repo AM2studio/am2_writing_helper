@@ -52,15 +52,19 @@ class AM2_Writing_Helper_Admin {
         $this->am2_writing_helper = $am2_writing_helper;
         $this->version = $version;        
         
-        add_action( 'init', array( $this, 'setup_plugin' ) );
-        add_action( "wp_ajax_{$this->am2_writing_helper}_send_invites", array( $this, 'send_invites' ) );
+        add_action( 'init', array( $this, 'setup_plugin' ) );        
         
         add_action('add_meta_boxes', array($this, 'add_meta_box'));
-        add_action('save_post', array($this, 'save'));
+        
+        add_action( "wp_ajax_{$this->am2_writing_helper}_send_invites", array( $this, 'send_invites' ) );
+        add_action( "wp_ajax_{$this->am2_writing_helper}_revoke_link", array( $this, 'revoke_link' ) );
+        
+        //add_action('save_post', array($this, 'save'));
     }
     
     public function setup_plugin(){        
-        global $current_user;
+        global $current_user;        
+        
         $this->current_user = $current_user;                
     }
 
@@ -68,6 +72,12 @@ class AM2_Writing_Helper_Admin {
      * Adds the meta box container.
      */
     public function add_meta_box($post_type) {
+        global $post;      
+        
+        $allowed_statuses = array('auto-draft', 'draft');
+        
+        if(!in_array($post->post_status,$allowed_statuses )) return;
+        
         $post_types = array('post', 'page');     //limit meta box to certain post types
         if (in_array($post_type, $post_types)) {
             add_meta_box(
@@ -135,9 +145,11 @@ class AM2_Writing_Helper_Admin {
      */
     public function render_meta_box_content($post) {   
                 
-
         // Add an nonce field so we can check for it later.
         //wp_nonce_field('am2_writing_helper_box', 'am2_writing_helper_box_nonce');
+        $post_id = $post->ID;
+        $review_emails = get_post_meta($post_id, 'am2_review_emails', true);
+        $reviews = get_post_meta($post_id, 'am2_review_feedback', true);
         
         ?>
         <div id="invitetoshare">
@@ -150,7 +162,7 @@ class AM2_Writing_Helper_Admin {
                 <label for="invitelist">
                     Enter email addresses of people you would like to get feedback from:						</label>
             </p>
-            <textarea id="invitelist" rows="2" placeholder="bob@example.org, sarah@example.org" class="first-focus"></textarea>
+            <textarea id="invitelist" cols="80" rows="2" placeholder="bob@example.org, sarah@example.org" class="first-focus"></textarea>
 
             <input type="submit" id="add-request" value="Send Requests" class="button-secondary" style="display: none;">
             <a class="customize" href="" style="display: none;">Customize the message</a>
@@ -173,6 +185,16 @@ class AM2_Writing_Helper_Admin {
                 <input type="button" id="add-request-custom" value="Send Requests" class="button-secondary">
                 &nbsp;
                 <!--<a class="cancel" href="#">Cancel</a>-->
+                <div class="am2_feedbacks">
+                    <?php if(is_array($review_emails)) { foreach($review_emails as $key => $email) {  ?>
+                    <div class="am2_feedback">
+                        <strong><?php echo $email;?> responded: </strong> <input type="button" class="am2_wh_revoke_link" data-reviewers-hash="<?php echo $key;?>" value="Revoke link"/>
+                        <div>
+                        <?php if(!isset($reviews[$key]) || empty($reviews[$key])) echo "<i>No review yet.</i>"; else echo $reviews[$key];  ?>
+                        </div>
+                    </div>
+                    <?php } } ?>
+                </div>
             </div>
 
             <!--<div id="df-share-link-p">
@@ -183,53 +205,78 @@ class AM2_Writing_Helper_Admin {
                 <a class="button" id="df-share-link" data-post-id="7">
                     Get a link						</a>
             </div>-->
-            <div id="am2_writing_helper">
+            <div id="am2_wh_status_mails">
+                <img class="am2_wh_loader" src="<?php echo plugins_url( 'admin/images/ajax-loader.gif', dirname(__FILE__) )?>" style="display:none;"/>
                 <div class="am2_wh_success"></div>
                 <div class="am2_wh_fail"></div>
             </div>
+            
+            
         </div>
 
         <?php
     }
     
-    public function send_invites( $data )
+    public function send_invites(  )
     {
+        header( "Content-Type: application/json" );
+        
         $nonce = $_POST['am2WritingHelperNonce'];
+        $allowed_roles = array('administrator', 'editor', 'super-editor', 'superauthor', 'author', 'contributor');
+        $allow = false;
+        
+        foreach($allowed_roles as $role){
+            if($this->is_user_in_role($this->current_user->ID, $role)){
+                $allow = true;
+                break;
+            }
+        }              
  
         // check to see if the submitted nonce matches with the
         // generated nonce we created earlier
         if ( ! wp_verify_nonce( $nonce, 'am2-writing-helper-nonce' ) ){
             exit ( 'Busted!');
         }            
-        else {
+        else if($allow){
             if(isset($_POST['invite_data'])){
                 $result = $this->send_mails();
-            }
-            
-            header( "Content-Type: application/json" );
+            }                        
             echo json_encode($result);
-            exit();
+            
+        } else {            
+            echo json_encode('not allowed');            
         }
-    }
+        
+        exit();
+    }        
     
     public function send_mails(){
         $invite_data = $_POST['invite_data'];
-        $results = array();
-
+        $results = array();   
+        
         if(isset($invite_data['invite_list']) && isset($invite_data['custom_text']) && isset($invite_data['post_id'])){
             $addresses = explode(",", $invite_data['invite_list'] );
             $post_id = $invite_data['post_id'];
-            $content = $invite_data['custom_text'];            
+            $content = $invite_data['custom_text']; 
+            
+            //$invites = get_post_meta($post_id, 'am2_review_invites', true);
+            $invites_emails = get_post_meta($post_id, 'am2_review_emails', true);
+            //if(!is_array($invites)) $invites = array();            
+            if(!is_array($invites_emails)) $invites_emails = array();
             
             if(is_array($addresses)){                
                 foreach($addresses as $email){
                     $email = trim($email);
                     $reviewers_hash = md5($post_id.$email.AUTH_KEY);
-                    $feedback_link = site_url() . "?p=" . $post_id . "&am2_shareadraft=" . $reviewers_hash;
+                    $feedback_link = site_url() . "?p=" . $post_id . "&am2_sharedraft=" . $reviewers_hash;
                     $to = $email;                   
                     $subject = $this->current_user->display_name . ' asked you for feedback on a new draft: "'.get_the_title($post_id).'"';
                     $body = str_replace('{{feedback-link}}', $feedback_link, $content);
-                    
+                                        
+                    $invites_emails[$reviewers_hash] = $email;
+                    //update_post_meta($post_id, 'am2_review_invites', $invites);
+                    update_post_meta($post_id, 'am2_review_emails', $invites_emails);
+                            
                     $results[$to] = wp_mail($to,$subject, $body);                    
                 }
             }
@@ -237,6 +284,58 @@ class AM2_Writing_Helper_Admin {
         
         return $results;
     }
+    
+    public function revoke_link(  )
+    {
+        header( "Content-Type: application/json" );
+        
+        $nonce = $_POST['am2WritingHelperNonce'];
+        $allowed_roles = array('administrator', 'editor', 'super-editor', 'superauthor', 'author', 'contributor');
+        $allow = false;
+        
+        foreach($allowed_roles as $role){
+            if($this->is_user_in_role($this->current_user->ID, $role)){
+                $allow = true;
+                break;
+            }
+        }              
+ 
+        // check to see if the submitted nonce matches with the
+        // generated nonce we created earlier
+        if ( ! wp_verify_nonce( $nonce, 'am2-writing-helper-nonce' ) ){
+            exit ( 'Busted!');
+        }            
+        else if($allow){
+            if(isset($_POST['invite_data'])){
+                $invite_data = $_POST['invite_data'];
+                $post_id = $invite_data['post_id'];
+                $reviewers_hash = $invite_data['reviewers_hash'];
+                
+                $invites_emails = get_post_meta($post_id, 'am2_review_emails', true);
+                $reviews = get_post_meta($post_id, 'am2_review_feedback', true);
+                unset($invites_emails[$reviewers_hash]);
+                unset($reviews[$reviewers_hash]);
+                $result1 = update_post_meta($post_id, 'am2_review_emails', $invites_emails);
+                $result2 = update_post_meta($post_id, 'am2_review_feedback', $reviews);
+            }                        
+            echo json_encode(array('status' => ($result1 && $result2 ? 'success' : 'fail')));
+            
+        } else {            
+            echo json_encode('not allowed');            
+        }
+        
+        exit();
+    }
+    
+    function get_user_roles_by_user_id( $user_id ) {
+        $user = get_userdata( $user_id );
+        return empty( $user ) ? array() : $user->roles;
+    }
+    
+    function is_user_in_role( $user_id, $role  ) {
+        return in_array( $role, $this->get_user_roles_by_user_id( $user_id ) );
+    }
+        
 
     /**
      * Register the stylesheets for the admin area.
@@ -287,7 +386,7 @@ class AM2_Writing_Helper_Admin {
             'am2WritingHelperNonce' => wp_create_nonce( 'am2-writing-helper-nonce' ),
             'plugin_name' => $this->am2_writing_helper
             )
-           );
+        );
     }
 
 }

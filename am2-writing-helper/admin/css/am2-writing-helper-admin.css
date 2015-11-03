@@ -2,3 +2,9 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+#invitetoshare #am2_writing_helper {margin:10px 0px;}
+#invitetoshare .am2_feedbacks {margin:10px 0px;}
+#invitetoshare .am2_feedback {margin-bottom:15px;}
+#invitetoshare .am2_feedback i {color:#aaa;}
+#invitetoshare .am2_feedback .am2_wh_revoke_link {float:right; font-size:12px;}
