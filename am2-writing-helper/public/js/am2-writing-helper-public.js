@@ -41,6 +41,29 @@
                     $('body').append(resp);
                 });
             }
+            
+            if(AM2Ajax.valid_request){
+                $('#am2_submit_feedback').on('click', function(){
+                    $('.am2_wh_loader').show();
+                    $.post(AM2Ajax.ajaxurl,{
+                         action: AM2Ajax.plugin_name + '_feedback_submit',
+                         am2WritingHelperNonce: AM2Ajax.am2WritingHelperNonce,
+                         am2_sharedraft: AM2Ajax.am2_sharedraft,
+                         post_id: AM2Ajax.post_id,
+                         feedback: $('#feedback-text').val()
+                     }, function(resp){
+                         $('.am2_wh_loader').hide();
+                         $('.draftfeedback-first-screen').hide();
+                         $('.draftfeedback-second-screen').show();
+                     }); 
+                });            
+                
+                $('#feedback-more').on('click', function(){ 
+                    $('.draftfeedback-first-screen').show();
+                    $('.draftfeedback-second-screen').hide();
+                });
+                
+            }
         });
 
 })( jQuery );

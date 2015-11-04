@@ -35,12 +35,14 @@ global $post;
 			This is a private, unpublished draft. Please review it and leave your feedback in the box below.		</p>
 
 		<p>Note any typos you find, suggestions you have, or links to recommend.</p>
-	</div>
-	<form class="draftfeedback-first-screen" id="feedbackform" method="post">
-		<textarea name="feedback" rows="4" id="feedback-text" style=" margin-top: 0px; margin-bottom: 5px;"></textarea>
-                <!--<input type="hidden" name="am2_post_id" value="{{am2_post_id}}" />-->
-		<input type="submit" class="button button-primary" name="Send Feedback" value="Send Feedback">
-		<input type="button" class="button draftfeedback-return" value="Back to post">
                 
-	</form>
+                <textarea name="feedback" rows="4" id="feedback-text" style=" margin-top: 0px; margin-bottom: 5px;"></textarea>
+                <input type="hidden" name="post_id" value="<?php echo $post->ID;?>" />
+		<input id="am2_submit_feedback" type="submit" class="button button-primary" name="Send Feedback" value="Send Feedback"/>
+                <img class="am2_wh_loader" src="<?php echo plugins_url( 'images/ajax-loader.gif', dirname(__FILE__) )?>" style="display:none;"/>
+		<input type="button" class="button draftfeedback-return" value="Back to post">    
+	</div>
+	<!--<form class="draftfeedback-first-screen" id="feedbackform" method="post">-->
+		            
+	<!--</form>-->
 </div>
