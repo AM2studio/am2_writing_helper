@@ -11,6 +11,9 @@
  * @package    AM2_Writing_Helper
  * @subpackage AM2_Writing_Helper/public/partials
  */
+
+global $current_user;
+global $post;
 ?>
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
@@ -26,7 +29,7 @@
 		<input type="button" class="button draftfeedback-return" value="Back to post">
 	</div>
 	<div class="draftfeedback-intro draftfeedback-first-screen" id="draftfeedback-intro">
-		<h3>{{author_name}} would like your feedback.</h3>
+		<h3><?php echo get_the_author_meta('display_name', $post->post_author);?> would like your feedback.</h3>
 
 		<p>
 			This is a private, unpublished draft. Please review it and leave your feedback in the box below.		</p>
@@ -35,7 +38,7 @@
 	</div>
 	<form class="draftfeedback-first-screen" id="feedbackform" method="post">
 		<textarea name="feedback" rows="4" id="feedback-text" style=" margin-top: 0px; margin-bottom: 5px;"></textarea>
-                <input type="hidden" name="am2_post_id" value="{{am2_post_id}}" />
+                <!--<input type="hidden" name="am2_post_id" value="{{am2_post_id}}" />-->
 		<input type="submit" class="button button-primary" name="Send Feedback" value="Send Feedback">
 		<input type="button" class="button draftfeedback-return" value="Back to post">
                 

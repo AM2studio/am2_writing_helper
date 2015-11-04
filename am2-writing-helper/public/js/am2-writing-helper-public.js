@@ -30,7 +30,7 @@
 	 */
         
         $(document).ready(function(){
-            if(AM2Ajax.valid_request){
+            if(false && AM2Ajax.valid_request){
                 $.post(AM2Ajax.ajaxurl,{
                     action: AM2Ajax.plugin_name + '_get_submit_form_markup',
                     am2WritingHelperNonce: AM2Ajax.am2WritingHelperNonce,

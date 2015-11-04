@@ -190,7 +190,15 @@ class AM2_Writing_Helper_Admin {
                     <div class="am2_feedback">
                         <strong><?php echo $email;?> responded: </strong> <input type="button" class="am2_wh_revoke_link" data-reviewers-hash="<?php echo $key;?>" value="Revoke link"/>
                         <div>
-                        <?php if(!isset($reviews[$key]) || empty($reviews[$key])) echo "<i>No review yet.</i>"; else echo $reviews[$key];  ?>
+                            <ol>
+                        <?php if(!isset($reviews[$key]) || empty($reviews[$key])) echo "<i>No review yet.</i>"; else {
+                            foreach($reviews[$key] as $review){ ?>
+                            <li>
+                                <?php echo $review; //var_dump($review); ?>
+                            </li>                                
+                            <?php } 
+                        }?>
+                            </ol>
                         </div>
                     </div>
                     <?php } } ?>

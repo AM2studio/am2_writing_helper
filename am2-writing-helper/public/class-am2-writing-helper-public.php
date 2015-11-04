@@ -59,23 +59,25 @@ class AM2_Writing_Helper_Public {
                 
                 add_action( "wp_ajax_{$this->am2_writing_helper}_get_submit_form_markup", array( $this, 'get_submit_form_markup' ) );
                 add_action( "wp_ajax_nopriv_{$this->am2_writing_helper}_get_submit_form_markup", array( $this, 'get_submit_form_markup' ) );                                
+                
+                add_action('wp_footer', array( $this, 'print_submit_form_markup' ) );
                                 
 	}
         
         public function check_for_submission(){                        
-            if(isset($_POST['am2_post_id']) && !empty($_POST['am2_post_id'])){
-                $post_id = $_POST['am2_post_id'];               
+            if(isset($_GET['p']) && !empty($_GET['p']) && isset($_POST['feedback']) && !empty($_POST['feedback'])){
+                $post_id = $_GET['p'];               
 
                 if($this->is_valid_request($post_id)){
                     $reviewers_hash = $_GET['am2_sharedraft'];
                     $reviews = get_post_meta($post_id, 'am2_review_feedback', true);
-                    $reviews[$reviewers_hash] = sanitize_text_field($_POST['feedback']);
+                    $reviews[$reviewers_hash][] = sanitize_text_field($_POST['feedback']);
                     update_post_meta($post_id, 'am2_review_feedback', $reviews);
                 }
             }
         }
         
-        public function get_submit_form_markup( $data )
+        public function get_submit_form_markup(  )
         {            
             $nonce = $_POST['am2WritingHelperNonce'];                        
             $post_id = $_POST['post_id'];
@@ -99,6 +101,10 @@ class AM2_Writing_Helper_Public {
             }
 
             exit();
+        }
+        
+        public function print_submit_form_markup(){            
+            if( !empty($_GET['p']) && $this->is_valid_request($_GET['p']))   include_once($this->submit_review_include); 
         }
         
         public function allow_draft_view(){
