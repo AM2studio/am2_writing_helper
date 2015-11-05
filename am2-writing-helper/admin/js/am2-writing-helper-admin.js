@@ -55,7 +55,7 @@
                       
                       $('.am2_wh_loader').hide();
                       
-                      if(resp[obj] === true)
+                      if(resp[obj] == true)
                           success.push(obj);                          
                       else
                           fail.push(obj);

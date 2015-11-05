@@ -157,7 +157,7 @@ class AM2_Writing_Helper_Admin {
         $post_id = $post->ID;
         $review_emails = get_post_meta($post_id, 'am2_review_emails', true);
         $reviews = get_post_meta($post_id, 'am2_review_feedback', true);
-        $excerpt = mb_substr(strip_tags($post->post_content), 0, 300) . "..."; //add_filter( 'get_the_excerpt', array('AM2_Writing_Helper_Admin', 'am2_custom_excerpt_more') );
+        $excerpt = mb_substr(wp_strip_all_tags($post->post_content, true), 0, 300) . "..."; //add_filter( 'get_the_excerpt', array('AM2_Writing_Helper_Admin', 'am2_custom_excerpt_more') );
 				
         ?>
         <div id="invitetoshare">
@@ -183,8 +183,8 @@ class AM2_Writing_Helper_Admin {
                 "Please leave your feedback here:\n".
                 "{{feedback-link}}\n\n".
                 "Title: " . get_the_title() . "\n".
-                "Beginning: " . $excerpt . "\n".
-                "Read more: {{feedback-link}}" ."\n".
+                "Beginning: " . $excerpt . "\n\n".
+                "Read more: {{feedback-link}}" ."\n\n".
                 "Thanks,\n".
                 $this->current_user->display_name . " (".$this->current_user->user_email.")";
                 ?></textarea>
@@ -275,7 +275,11 @@ class AM2_Writing_Helper_Admin {
         if(isset($invite_data['invite_list']) && isset($invite_data['custom_text']) && isset($invite_data['post_id'])){
             $addresses = explode(",", $invite_data['invite_list'] );
             $post_id = $invite_data['post_id'];
-            $content = $invite_data['custom_text']; 
+						
+						//if (get_magic_quotes_gpc())  
+							$content = stripslashes($invite_data["custom_text"]);
+						//else 
+							//$content = $invite_data['custom_text']; 
             
             //$invites = get_post_meta($post_id, 'am2_review_invites', true);
             $invites_emails = get_post_meta($post_id, 'am2_review_emails', true);

@@ -224,8 +224,13 @@ class AM2_Writing_Helper_Public {
      */
     public function enqueue_scripts() {
 
-        global $post;
-        $post_id = $post->ID;
+        if(isset($_GET['p']) && !empty($_GET['p'])){
+					$_p = $_GET['p'];
+					$p = get_post($_p);
+					$post_id = $p->ID;
+				}
+				else return;
+				       
 
         /**
          * This function is provided for demonstration purposes only.
@@ -242,14 +247,16 @@ class AM2_Writing_Helper_Public {
         wp_localize_script($this->am2_writing_helper, 'AM2Ajax', array(
             // URL to wp-admin/admin-ajax.php to process the request
             'ajaxurl' => admin_url('admin-ajax.php'),
+						
             // generate a nonce with a unique ID "myajax-post-comment-nonce"
             // so that you can check it later when an AJAX request is sent
             'am2WritingHelperNonce' => wp_create_nonce('am2-writing-helper-nonce'),
+						
             'plugin_name' => $this->am2_writing_helper,
             'submit_review_include' => $this->submit_review_include,
             'am2_sharedraft' => isset($_GET['am2_sharedraft']) ? $_GET['am2_sharedraft'] : null,
             'post_id' => $post_id,
-            'post_author' => get_the_author_meta('display_name', $post->post_author),
+            'post_author' => get_the_author_meta('display_name', $p->post_author),
             'valid_request' => $this->is_valid_request($post_id),
                 )
         );

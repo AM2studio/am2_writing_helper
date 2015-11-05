@@ -3,6 +3,12 @@
  * included in this file.
  */
 
-.draftfeedback-container {width:300px; position:fixed; top:0px; right:0px; height:100%; background-color: rgba(255,255,255,1); padding:10px; }
+.draftfeedback-container {width:300px; position:fixed; top:0px; right:0px; height:100%; background-color: rgba(255,255,255,1); padding:10px; z-index:99999; border-left:1px dashed #aaa; }
 .draftfeedback-thanks {display:none;}
-.draftfeedback-return {display:none;}
+.draftfeedback-return {display:none !important;}
+
+.draftfeedback-container #feedback-text { height:400px; }
+
+.draftfeedback-thanks > * {margin-bottom:15px;}
+
+.draftfeedback-intro > * {margin-bottom:15px;}
