@@ -137,6 +137,13 @@ class AM2_Writing_Helper_Admin {
         // Update the meta field.
         update_post_meta($post_id, '_my_meta_value_key', $mydata);*/
     }
+		
+		public function am2_custom_excerpt_more( $output ) {
+			/*if ( has_excerpt() && ! is_attachment() ) {
+				$output .= "..."; // twentyeleven_continue_reading_link();
+			}*/
+			return $output . "...";
+		}
 
     /**
      * Render Meta Box content.
@@ -150,7 +157,8 @@ class AM2_Writing_Helper_Admin {
         $post_id = $post->ID;
         $review_emails = get_post_meta($post_id, 'am2_review_emails', true);
         $reviews = get_post_meta($post_id, 'am2_review_feedback', true);
-        
+        $excerpt = mb_substr(strip_tags($post->post_content), 0, 300) . "..."; //add_filter( 'get_the_excerpt', array('AM2_Writing_Helper_Admin', 'am2_custom_excerpt_more') );
+				
         ?>
         <div id="invitetoshare">
             <p>
@@ -175,7 +183,7 @@ class AM2_Writing_Helper_Admin {
                 "Please leave your feedback here:\n".
                 "{{feedback-link}}\n\n".
                 "Title: " . get_the_title() . "\n".
-                "Beginning: " . strip_tags(apply_filters('the_excerpt',$post->post_content)) . "\n".
+                "Beginning: " . $excerpt . "\n".
                 "Read more: {{feedback-link}}" ."\n".
                 "Thanks,\n".
                 $this->current_user->display_name . " (".$this->current_user->user_email.")";
@@ -191,7 +199,9 @@ class AM2_Writing_Helper_Admin {
                         <strong><?php echo $email;?> responded: </strong> <input type="button" class="am2_wh_revoke_link" data-reviewers-hash="<?php echo $key;?>" value="Revoke link"/>
                         <div>
                             <ol>
-                        <?php if(!isset($reviews[$key]) || empty($reviews[$key])) echo "<i>No review yet.</i>"; else {
+                        <?php if(!isset($reviews[$key]) || empty($reviews[$key])) 
+															echo "<i>No review yet.</i>"; 
+														else {
                             foreach($reviews[$key] as $review){ ?>
                             <li>
                                 <?php echo $review; //var_dump($review); ?>
