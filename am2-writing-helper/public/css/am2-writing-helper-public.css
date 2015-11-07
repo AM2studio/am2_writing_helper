@@ -12,3 +12,7 @@
 .draftfeedback-thanks > * {margin-bottom:15px;}
 
 .draftfeedback-intro > * {margin-bottom:15px;}
+
+@media screen and (max-width: 1260px) {
+	.draftfeedback-container {width:100%; position:static;   }
+}
